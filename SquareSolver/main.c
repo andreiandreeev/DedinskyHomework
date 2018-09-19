@@ -117,7 +117,7 @@ int solve_sqreq(double a, double b, double c, double* x1, double* x2)
     double discriminant = b*b - 4*a*c;
     if (discriminant < 0)
       return 0;
-    if (abs(discriminant) < 0.001)
+    if (abs(discriminant) < 0.000001)
     {
       *x1 = -b/2/a;
       return 1;
