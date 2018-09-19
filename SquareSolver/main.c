@@ -94,7 +94,7 @@ int solve_lineq(double a, double b, double*  x)
     \param c Free coefficient
     \param x1 Reference to the first solution variable
     \param x2 Reference to the second solution variable
-    \return number of solutions or -1 in case of calc. error
+    \return number of solutions, 3 in case of infinite solutions, -1 in case of calc. error
 */    
 int solve_sqreq(double a, double b, double c, double* x1, double* x2)
   {
