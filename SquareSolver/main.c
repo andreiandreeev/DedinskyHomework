@@ -23,7 +23,8 @@ int main()
   double a = 0, b = 0, c = 0;
   double x1, x2;
 
-  assert(scanf("%lf%lf%lf", &a, &b, &c));
+  while(scanf("%lf%lf%lf", &a, &b, &c) != 3)
+    printf("Incorrect input. Try again\n");
   assert(!(isnan(a) || isnan(b) || isnan(c)));
   
   int result = solve_sqreq(a, b, c, &x1, &x2);
