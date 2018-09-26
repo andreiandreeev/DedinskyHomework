@@ -64,7 +64,7 @@ int main()
              break;
              
     default: 
-             printf("Calculating error.");
+             printf("Calculation or assignment error.");
              printf("\n");
              break;
     }
