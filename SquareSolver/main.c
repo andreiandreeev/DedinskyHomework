@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
+#define PRECISION 0.000001
+#define INFINITY 3
 
 int solve_lineq(double a, double b, double*  x);
 int solve_sqreq(double a, double b, double c, double* x1, double* x2);
+int areDoubleEqual(double firstDouble, double secondDouble);
 
 int main()
   {
@@ -56,7 +59,7 @@ int main()
              printf("\n");
              break;
              
-    case 3 : printf("# Equation has infinite solutions in real numbers.");
+    case INFINITY : printf("# Equation has infinite solutions in real numbers.");
              printf("\n");
              break;
              
@@ -68,6 +71,13 @@ int main()
   return 0;
   }
   
+int areDoubleEqual(double firstDouble, double secondDouble)
+  {
+     if(abs(firstDouble - secondDouble) < PRECISION) 
+       return 1;
+     else return 0;
+  } 
+
 /*!
     Solves linear equation of common type(ax + b = 0) in real numbers.
     \param a Coefficient before x
@@ -81,7 +91,11 @@ int solve_lineq(double a, double b, double*  x)
     assert(!isnan(a));
     assert(!isnan(b));
     assert(x!=NULL);
-
+    if(a == 0)
+      if(b == 0)
+        return INFINITY;
+      else return 0;
+    
     *x = -b/a;
 
     if(*x == -b/a)
@@ -109,7 +123,7 @@ int solve_sqreq(double a, double b, double c, double* x1, double* x2)
     if(a == 0) 
     {
       if(b == 0 && c == 0)
-        return 3;
+        return INFINITY;
       if(b == 0)
         return 0;
       return solve_lineq(b, c, x1);
@@ -118,7 +132,7 @@ int solve_sqreq(double a, double b, double c, double* x1, double* x2)
     double discriminant = b*b - 4*a*c;
     if (discriminant < 0)
       return 0;
-    if (abs(discriminant) < 0.000001)
+    if (areDoubleEqual(discriminant, 0))
     {
       *x1 = -b/2/a;
       return 1;
