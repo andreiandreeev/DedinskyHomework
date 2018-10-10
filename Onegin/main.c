@@ -7,35 +7,55 @@
 
 char* fileToString(FILE* file, int* stringLength);
 char** stringToPtr(char* string, int stringLength, int* arrayLength);
+char** ptrArrayCopy(char** ptrArray, int arrayLength);
+char* stringReverse(char* str);
 int stringCmp(const void* a, const void* b);
 
 int main()
 {
-  FILE* input  = fopen(INPUT,  "r");
+  FILE* inputFile  = fopen(INPUT,  "r");
   char* originalPoem;
   char** originalLinkedPoem;
   char** sortedLinkedPoem;
+  char** backSortedLinkedPoem;
   int strLength;
   int arrayLength = 0;
+  int i;
+  originalPoem = fileToString(inputFile, &strLength);
   
-  originalPoem = fileToString(input, &strLength);
   originalLinkedPoem = stringToPtr(originalPoem, strLength, &arrayLength); 
-
-  sortedLinkedPoem = stringToPtr(originalPoem, strLength, NULL);
+  sortedLinkedPoem =  ptrArrayCopy(originalLinkedPoem, arrayLength);
+  backSortedLinkedPoem = ptrArrayCopy(originalLinkedPoem, arrayLength);
+   
   qsort(sortedLinkedPoem, arrayLength, sizeof(char*), stringCmp);
 
-  int i;
-  fclose(input);
+  for(i = 0; i < arrayLength; i++)
+    backSortedLinkedPoem[i] = stringReverse(backSortedLinkedPoem[i]);
+  
+  qsort(backSortedLinkedPoem, arrayLength, sizeof(char*), stringCmp); 
+  
+  for(i = 0; i < arrayLength; i++)
+    backSortedLinkedPoem[i] = stringReverse(backSortedLinkedPoem[i]);
+
+ 
+  fclose(inputFile);
   FILE* outputFile = fopen(OUTPUT, "w");
 
   for(i = 0; i < arrayLength; i++)
     if(sortedLinkedPoem[i][0] != '\0') 
       fprintf(outputFile, "%s\n", sortedLinkedPoem[i]);
-  
+  for(i = 0; i < arrayLength; i++)
+    if(sortedLinkedPoem[i][0] != '\0')
+      fprintf(outputFile, "%s\n", backSortedLinkedPoem[i]);
   for(i = 0; i < arrayLength; i++)
     if(originalLinkedPoem[i][0] != '\0')
       fprintf(outputFile, "%s\n", originalLinkedPoem[i]);
 
+  fclose(outputFile);
+  free(backSortedLinkedPoem);
+  free(sortedLinkedPoem);
+  free(originalLinkedPoem);
+    
 }
 
 char* fileToString(FILE* file, int* stringLength)
@@ -76,10 +96,36 @@ char** stringToPtr(char* string, int stringLength, int* arrayLength)
   return ptrArray; 
 }
 
+char** ptrArrayCopy(char** ptrArray, int arrayLength)
+{
+  char** returned = (char**)calloc(arrayLength, sizeof(char*));
+  int i;
+  for(i = 0; i < arrayLength; i++)
+  {
+    returned[i] = ptrArray[i];
+  }
+  return returned;
+}
+
 int stringCmp(const void* a, const void* b)
 {
   const char* pa = *(const char**)a;
   const char* pb = *(const char**)b;
   return strcasecmp(pa, pb);
 }
- 
+
+char* stringReverse(char *str)
+{
+    int i = strlen(str) - 1, j = 0;
+
+    char ch;
+    while (i > j)
+    {
+        ch = str[i];
+        str[i] = str[j];
+        str[j] = ch;
+        i--;
+        j++;
+    }
+    return str;
+}
