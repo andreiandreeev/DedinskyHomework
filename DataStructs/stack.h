@@ -58,6 +58,7 @@ int main()
 struct Stack  stackNew (size_t stackSize)
 {
   struct Stack* stack = stackCtor(stackSize);
+  assert(stackOk(stack));
   return *stack;
 }
 
