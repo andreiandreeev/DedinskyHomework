@@ -4,13 +4,13 @@
 
 typedef double t_data; 
 
-#define unitest(what, ref){ \
-  if(what != ref){\
-    printf("FAILED: %s=%d, expected %d\n", #what, (what), (ref))\
+#define unittest(what, ref) \
+  if(what != ref)\
+    printf("FAILED: %s=%d, expected %d\n", #what, (what), (ref));\
   else\
-    printf("&s\n", "PASSED")\
-  }\
-}
+    printf("&s\n", "PASSED");\
+  \
+
 
 const int STACK_AUTO_INCREASING_COEF = 2;
 const int STACK_AUTO_DECREASING_COEF = 4;
@@ -18,14 +18,15 @@ const t_data            CANARY_VALUE = 666.13;
 
 struct Stack
 {
-  t_data* data = {};
-  size_t size = 0;
-  size_t capacity = 0;
+  t_data* data;
+  size_t size;
+  size_t capacity;
 };
 
-struct Stack stackCtor(size_t stackSize);
+struct Stack* stackCtor(size_t stackSize);
+struct Stack  stackNew (size_t stackSize);
 int stackDtor(struct Stack* __this);
-int stackResize(struct Stack* __this, long long int resizeNumber);
+int stackResize(struct Stack* __this, ssize_t resizeNumber);
 int stackPush(struct Stack* __this, t_data element);
 t_data stackPop(struct Stack* __this);
 int stackOk(struct Stack* __this);
@@ -35,37 +36,43 @@ size_t stackGetCapacity(struct Stack* __this);
 /*
 int main()
 {
-  struct Stack stack = stackCtor(0);
+  struct Stack* stack = stackCtor(0);
   
-  unitest(stackOk(&stack), 1);
-  unitest(stackGetSize(&stack), 0);
-  unitest(stackGetCapacity(&stack), 0);
-  unitest(stackPush(&stack, 42), 1); 
-  unitest(stackOk(&stack), 1);
-  unitest(stackGetSize(&stack), 1);
-  unitest(stackgetCapacity(&stack), 4);
-  unitest(stackPop(&stack), 42);
-  unitest(stackOk(&stack), 1);
-  unitest(stackGetSize(&stack), 0);
-  unitest(stackGetCapacity(&stack), 0);
-  unitest(stackResize(&stack, 42), 1);
-  unitest(stackOk(&stack), 1);
-  unitest(stackGetCapacity(&stack), 42);
-  unitest(stackGetSize(&stack), 0);
-  unitest(stackDtor(&stack), 1);
+  unittest(stackOk(&stack), 1)
+  unittest(stackPush(&stack, 42), 1)
+  unittest(stackOk(&stack), 1)
+  unittest(stackGetSize(&stack), 1)
+  unittest(stackgetCapacity(&stack), 4)
+  unittest(stackPop(&stack), 42)
+  unittest(stackOk(&stack), 1)
+  unittest(stackGetSize(&stack), 0)
+  unittest(stackGetCapacity(&stack), 0)
+  unittest(stackResize(&stack, 42), 1)
+  unittest(stackOk(&stack), 1)
+  unittest(stackGetCapacity(&stack), 42)
+  unittest(stackGetSize(&stack), 0)
+  unittest(stackDtor(&stack), 1)
 }
 */
 
-struct Stack stackCtor(size_t stackSize)
+struct Stack  stackNew (size_t stackSize)
 {
-  assert(stackSize >= 0);
+  struct Stack* stack = stackCtor(stackSize);
+  return *stack;
+}
+
+struct Stack* stackCtor(size_t stackSize)
+{
 
   t_data* data = (t_data*)calloc(stackSize + 2LL, sizeof(t_data));
-  struct Stack stack = {data, stackSize, 1LL};
-  stack.data[0] = CANARY_VALUE;
-  stack.data[stackSize + 1LL] = CANARY_VALUE;
+  struct Stack* stack = (struct Stack*)calloc(1, sizeof(stack));
+  stack->data = data;
+  stack->size = stackSize;
+  stack->capacity = 1LL;
+  stack->data[0] = CANARY_VALUE;
+  stack->data[stackSize + 1LL] = CANARY_VALUE;
 
-  assert(stackOk(&stack));
+  assert(stackOk(stack));
   return stack;
 }
 
@@ -77,7 +84,6 @@ int stackDtor(struct Stack* __this)
   {
     __this->size = -1;
     __this->capacity = -1;
-    __this->data = {};
     free(__this->data);
   }
   free(__this);
@@ -123,9 +129,16 @@ t_data stackPop(struct Stack* __this)
   return __this->data[__this->size+1];
 }
 
+#define that  
+
 int stackOk(struct Stack* __this)
 {
-  if(__this != NULL && __this->data[0] == CANARY_VALUE && __this->data[__this->capacity+1] == CANARY_VALUE && __this->capacity >= __this->size && __this->capacity >=0 && __this->size >= 0)
-    return 1;
-  return 0;
+  return that (
+     __this != NULL && 
+     __this->data[0] == CANARY_VALUE && 
+     __this->data[__this->capacity+1] == CANARY_VALUE && 
+     __this->capacity >= __this->size && 
+     __this->capacity >=0 && 
+     __this->size >= 0);
+    
 }
