@@ -14,8 +14,11 @@ char* fileToString(FILE* file, int* stringLength);
 char** stringToPtr(char* string, int stringLength, int* arrayLength);
 char** ptrArrayCopy(char** ptrArray, int arrayLength);
 char* stringReverse(char* str);
-int stringCmp(const void* a, const void* b);
+int stringCmp    (const void* a, const void* b);
+int stringBackCmp(const void* a, const void* b);
 
+int printArrayOfStrings(int arrayLength, char** array, FILE* outputFile);
+int countSymbolsInFile(FILE* inputFile);
 /*!
  	\function
 	Main function. 
@@ -25,43 +28,30 @@ int main()
 {
   FILE* inputFile  = fopen(INPUT,  "r");
   assert(inputFile != nullptr);
-  char* originalPoem;
-  char** originalLinkedPoem;
-  char** sortedLinkedPoem;
-  char** backSortedLinkedPoem;
-  int strLength;
+  char* originalPoem = NULL;
+  char** originalLinkedPoem = NULL;
+  char** sortedLinkedPoem = NULL;
+  char** backSortedLinkedPoem = NULL;	
+  int strLength = 0;
   int arrayLength = 0;
-  int i;
+  int i = 0;
   originalPoem = fileToString(inputFile, &strLength);
   
   originalLinkedPoem = stringToPtr(originalPoem, strLength, &arrayLength); 
   sortedLinkedPoem =  ptrArrayCopy(originalLinkedPoem, arrayLength);
   backSortedLinkedPoem = ptrArrayCopy(originalLinkedPoem, arrayLength);
    
-  qsort(sortedLinkedPoem, arrayLength, sizeof(char*), stringCmp);
-
-  for(i = 0; i < arrayLength; i++)
-    backSortedLinkedPoem[i] = stringReverse(backSortedLinkedPoem[i]);
+  qsort(sortedLinkedPoem, arrayLength, sizeof(char*), stringCmp);	
+  qsort(backSortedLinkedPoem, arrayLength, sizeof(char*), stringBackCmp); 
   
-  qsort(backSortedLinkedPoem, arrayLength, sizeof(char*), stringCmp); 
-  
-  for(i = 0; i < arrayLength; i++)
-    backSortedLinkedPoem[i] = stringReverse(backSortedLinkedPoem[i]);
-
- 
   fclose(inputFile);
   FILE* outputFile = fopen(OUTPUT, "w");
-
-  for(i = 0; i < arrayLength; i++)
-    if(sortedLinkedPoem[i][0] != '\0') 
-      fprintf(outputFile, "%s\n", sortedLinkedPoem[i]);
-  for(i = 0; i < arrayLength; i++)
-    if(sortedLinkedPoem[i][0] != '\0')
-      fprintf(outputFile, "%s\n", backSortedLinkedPoem[i]);
-  for(i = 0; i < arrayLength; i++)
-    if(originalLinkedPoem[i][0] != '\0')
-      fprintf(outputFile, "%s\n", originalLinkedPoem[i]);
-
+ 
+  printArrayOfStrings(arrayLength, sortedLinkedPoem,     outputFile);
+  printArrayOfStrings(arrayLength, backSortedLinkedPoem, outputFile);
+  printArrayOfStrings(arrayLength, originalLinkedPoem,   outputFile);
+  
+	
   fclose(outputFile);
   free(backSortedLinkedPoem);
   free(sortedLinkedPoem);
@@ -82,12 +72,11 @@ char* fileToString(FILE* file, int* stringLength)
 {
   assert(file != NULL);
   assert(stringLength != NULL);
-
-  fseek(file, 0L, SEEK_END);
-  *stringLength = ftell(file);
-  fseek(file, 0L, SEEK_SET);
+	
+  *stringLength = countSymbolsInFile(file);	
   char* string = (char*)calloc(*stringLength, sizeof(char));
-  fread(string, *stringLength, 1, file); 
+  fread(string, *stringLength, 1, file);
+ 
   return string;
 }
 /*!
@@ -106,7 +95,7 @@ char** stringToPtr(char* string, int stringLength, int* arrayLength)
 
   int i = 0;
   int iterator = 0;
-  char** ptrArray;
+  char** ptrArray = {};
   
   for(i = 0; i < stringLength; i++)
     if(string[i] == '\n' || string[i] == '\0')
@@ -136,9 +125,9 @@ char** ptrArrayCopy(char** ptrArray, int arrayLength)
 {
   assert(ptrArray != NULL);
   assert(arrayLength >= 0);
-
+  
   char** returned = (char**)calloc(arrayLength, sizeof(char*));
-  int i;
+  int i = 0;
   for(i = 0; i < arrayLength; i++)
   {
     returned[i] = ptrArray[i];
@@ -150,13 +139,39 @@ char** ptrArrayCopy(char** ptrArray, int arrayLength)
 */
 int stringCmp(const void* a, const void* b)
 {
-  assert(a!=NULL);
-  assert(b!=NULL);  
+  assert(a != NULL);
+  assert(b != NULL);  
 
   const char* pa = *(const char**)a;
   const char* pb = *(const char**)b;
   return strcasecmp(pa, pb);
 }
+
+int stringBackCmp(const void* a, const void* b)
+{
+  assert(a != NULL);
+  assert(b != NULL);  
+
+  const char* pa = *(const char**)a;
+  const char* pb = *(const char**)b;
+  aLen = strlen(pa);
+  bLen = strlen(pb);
+  
+  while((pa[aLen] == pb[bLen] || ispunct(pa[aLen]) || ispunct(pb[bLen])) && aLen >= 0 && bLen >= 0)
+  {
+    if(ispunct(pa[aLen]) || pa[aLen] == ' ')
+      aLen--;
+    else if(ispunct(pb[bLen]) || pb[bLen] == ' ')
+      bLen--;
+    else 
+    {
+      aLen--;
+      bLen--;
+    }
+  }
+  return(aLen - bLen);
+}
+
 /*!
 	\function Reverses string;
 	\param str String that should be reversed
@@ -166,16 +181,36 @@ char* stringReverse(char* str)
 {
     assert(str != NULL);
 
-    int i = strlen(str) - 1, j = 0;
+    int right = strlen(str) - 1, left = 0;
 
-    char ch;
-    while (i > j)
+    char ch = '\n';
+    while (right > left)
     {
-        ch = str[i];
-        str[i] = str[j];
-        str[j] = ch;
-        i--;
-        j++;
+        ch = str[right];
+        str[right] = str[left];
+        str[left] = ch;
+        right--;
+        left++;
     }
     return str;
+}
+
+int printArrayOfStrings(int arrayLength, char** array, FILE* outputFile)
+{
+  assert(array != NULL);
+  assert(arrayLength >= 0);
+  int i = 0;
+  for(i = 0; i < arrayLength; i++)
+    if(array[i][0] != '\0') 
+      fprintf(outputFile, "%s\n", array[i]);
+}
+
+int countSymbolsInFile(FILE* inputFile)
+{
+  assert(FILE* != NULL);
+  
+  fseek(inputFile, 0L, SEEK_END);
+  int length = ftell(file);
+  fseek(inputFile, 0L, SEEK_SET);
+  return length;
 }
